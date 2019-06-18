@@ -1,0 +1,12 @@
+current:
+  env: ""
+  version: ""
+databases:
+  development:
+    driver: mysql
+    dbhost: localhost
+    dbport: 3306
+    dbname: my_database
+    user: ""
+    password: ""
+    extra: {}
