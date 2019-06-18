@@ -33,6 +33,7 @@ var initCmd = &cobra.Command{
 		if err := app.DumpConfigByViper(viper.GetViper()); err != nil {
 			panic(err)
 		}
+		app.Logger.Info("Initialized")
 	},
 }
 
