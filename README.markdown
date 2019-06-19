@@ -3,6 +3,7 @@ Vmig
 
 ## Usage
 
+```
 A wrapper for golang-migrate that let it support version managed migrations and
 multiple environments.
 
@@ -21,3 +22,4 @@ Flags:
   -v, --verbose         Output debug message.
 
 Use "vmig [command] --help" for more information about a command.
+```
