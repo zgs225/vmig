@@ -1,8 +1,11 @@
 package core
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
@@ -95,6 +98,38 @@ func (app *App) CreateVersion(version string, isDefault bool) error {
 		app.Config.SetDefaultVersion(version)
 		app.Logger.Debug("Current version set to ", version)
 	}
+
+	return nil
+}
+
+// New 创建新的迁移文件
+func (app *App) New(title, dir string) error {
+	args := []string{"create", "-ext", "sql", "-dir", dir, title}
+	cmd := exec.Command("migrate", args...)
+	cmd.Stdout = new(bytes.Buffer)
+	cmd.Stderr = new(bytes.Buffer)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	app.Logger.WithField("cmd", "migrate").WithField("args", args).Debug("golang-mirate create command executed.")
+
+	if b, err := ioutil.ReadAll(cmd.Stdout.(*bytes.Buffer)); err != nil {
+		return err
+	} else {
+		if len(b) > 0 {
+			app.Logger.Info(string(b))
+		}
+	}
+
+	if b, err := ioutil.ReadAll(cmd.Stderr.(*bytes.Buffer)); err != nil {
+		return err
+	} else {
+		if len(b) > 0 {
+			app.Logger.Error(string(b))
+		}
+	}
+
+	app.Logger.Info("migration files created.")
 
 	return nil
 }
