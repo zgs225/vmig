@@ -65,7 +65,7 @@ func init() {
 	// when this action is called directly.
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Output debug message.")
+	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "", false, "Output debug message.")
 }
 
 // initConfig reads in config file and ENV variables if set.

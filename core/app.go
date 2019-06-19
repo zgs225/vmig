@@ -99,12 +99,18 @@ func (app *App) CreateVersion(version string, isDefault bool) error {
 		app.Logger.Debug("Current version set to ", version)
 	}
 
+	app.Logger.Infnf("Version %s created.", version)
+
 	return nil
 }
 
 // New 创建新的迁移文件
-func (app *App) New(title, dir string) error {
-	args := []string{"create", "-ext", "sql", "-dir", dir, title}
+func (app *App) New(title, version string) error {
+	if err := app.checkVersion(version); err != nil {
+		return err
+	}
+
+	args := []string{"create", "-ext", "sql", "-dir", version, title}
 	cmd := exec.Command("migrate", args...)
 	cmd.Stdout = new(bytes.Buffer)
 	cmd.Stderr = new(bytes.Buffer)
@@ -179,5 +185,15 @@ func (app *App) initLogger() error {
 	l.SetReportCaller(false)
 	l.SetLevel(logrus.InfoLevel)
 	app.Logger = l
+	return nil
+}
+
+func (app *App) checkVersion(v string) error {
+	// Check exists
+	dir := filepath.Join(app.Root, v)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		return fmt.Errorf("Version %s does not exist.", v)
+	}
+
 	return nil
 }

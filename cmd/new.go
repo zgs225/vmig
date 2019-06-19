@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	newCmdDir string
+	newCmdVersion string
 )
 
 // newCmd represents the new command
@@ -17,11 +17,11 @@ var newCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		app := GetVmigApp()
 		title := args[0]
-		dir := newCmdDir
-		if dir == "" {
-			dir = app.Config.Current.Version
+		version := newCmdVersion
+		if version == "" {
+			version = app.Config.Current.Version
 		}
-		if err := app.New(title, dir); err != nil {
+		if err := app.New(title, version); err != nil {
 			panic(err)
 		}
 	},
@@ -30,5 +30,5 @@ var newCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(newCmd)
 
-	newCmd.Flags().StringVarP(&newCmdDir, "dir", "d", "", "Directory for create migration files.")
+	newCmd.Flags().StringVarP(&newCmdVersion, "version", "", "", "Version of migration files belongs to.")
 }
