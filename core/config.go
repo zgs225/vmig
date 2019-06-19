@@ -17,6 +17,8 @@ var supportedDrivers = []string{"mysql", "postgres"}
 type Config struct {
 	Current   *CurrentConfig             `mapstructure:"current"`
 	Databases map[string]*DatabaseConfig `mapstructure:"databases"`
+
+	dirty bool // Whether config changed
 }
 
 // CurrentConfig 设置 vmig 默认使用的环境和版本
@@ -51,7 +53,22 @@ func (c *Config) AddDatabaseConfig(env string, dc *DatabaseConfig, isDefault boo
 	if isDefault {
 		c.Current.Env = env
 	}
+	c.dirty = true
 	return nil
+}
+
+func (c *Config) SetDefaultVersion(v string) {
+	if c.Current == nil {
+		c.Current = &CurrentConfig{}
+	}
+	if c.Current.Version != v {
+		c.Current.Version = v
+		c.dirty = true
+	}
+}
+
+func (c *Config) IsDirty() bool {
+	return c.dirty
 }
 
 // InitOption 用于初始化命令保存的参数

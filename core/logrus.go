@@ -20,7 +20,19 @@ func StructToFields(i interface{}) (logrus.Fields, error) {
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
-		r[f.Name] = v.Field(i).Interface()
+		fv := v.Field(i)
+		if fv.CanInterface() {
+			fvv := reflect.Indirect(fv)
+			if fvv.Kind() == reflect.Struct {
+				fvv2, err := StructToFields(fvv.Interface())
+				if err != nil {
+					return nil, err
+				}
+				r[f.Name] = fvv2
+			} else {
+				r[f.Name] = fvv.Interface()
+			}
+		}
 	}
 
 	return r, nil

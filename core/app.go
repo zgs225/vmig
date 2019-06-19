@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -73,6 +74,27 @@ func (app *App) Init() error {
 	}
 
 	l.Debug("configuration added.")
+
+	return nil
+}
+
+// CreateVersion 创建新版本
+func (app *App) CreateVersion(version string, isDefault bool) error {
+	dirName := filepath.Join(app.Root, version)
+	if _, err := os.Stat(dirName); !os.IsNotExist(err) {
+		return fmt.Errorf("Version already exists: " + version)
+	}
+
+	if err := os.Mkdir(dirName, 0755); err != nil {
+		return err
+	}
+
+	app.Logger.WithField("directory", dirName).Debug("Version directory created.")
+
+	if isDefault {
+		app.Config.SetDefaultVersion(version)
+		app.Logger.Debug("Current version set to ", version)
+	}
 
 	return nil
 }
