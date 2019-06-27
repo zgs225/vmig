@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
@@ -163,7 +164,15 @@ func (app *App) UpN(env, version string, n int) error {
 	}
 
 	if len(stderr) > 0 {
-		app.Logger.Error(stderr)
+		p := regexp.MustCompile("\\d+\\/u\\s.+\\(.*\\)")
+		m := p.FindAllString(stderr, -1)
+		if m != nil {
+			for _, l := range m {
+				app.Logger.WithField("Env", env).WithField("Version", version).Info(l)
+			}
+		} else {
+			app.Logger.Error(stderr)
+		}
 	}
 
 	if err != nil {
