@@ -131,7 +131,12 @@ func (app *App) Up(env, version string) error {
 	return app.UpN(env, version, 0)
 }
 
-// UpN 应用指定版本指定数量迁移文件，n 代表所有
+// Down 回滚指定版本的所有迁移文件
+func (app *App) Down(env, version string) error {
+	return app.DownN(env, version, 0)
+}
+
+// UpN 应用指定版本指定数量迁移文件，n <= 0 代表所有
 func (app *App) UpN(env, version string, n int) error {
 	if version == "" {
 		return errors.New("Version required.")
@@ -177,6 +182,55 @@ func (app *App) UpN(env, version string, n int) error {
 	}
 	app.Logger.WithField("cmd", "migrate").WithField("args", args).Debug("golang-migrate up command executed.")
 	app.Logger.WithField("Env", env).WithField("Version", version).Info("Migrated.")
+	return nil
+}
+
+// DownN 回滚指定版本指定数量迁移文件，n <= 0 代表所有
+func (app *App) DownN(env, version string, n int) error {
+	if version == "" {
+		return errors.New("Version required.")
+	}
+
+	if env == "" {
+		return errors.New("Environment required.")
+	}
+
+	if err := app.checkVersion(version); err != nil {
+		return err
+	}
+
+	cmd := "migrate"
+	database, err := app.Config.GetCurrentDatabaseURL()
+	if err != nil {
+		return err
+	}
+	args := []string{"-path", version, "-database", database, "down"}
+	if n > 0 {
+		args = append(args, strconv.FormatInt(int64(n), 10))
+	}
+	stdout, stderr, err := vmig_exec(cmd, args)
+
+	if len(stdout) > 0 {
+		app.Logger.Debug(stdout)
+	}
+
+	if len(stderr) > 0 {
+		p := regexp.MustCompile("\\d+\\/d\\s.+\\(.*\\)")
+		m := p.FindAllString(stderr, -1)
+		if m != nil {
+			for _, l := range m {
+				app.Logger.WithField("Env", env).WithField("Version", version).Info(l)
+			}
+		} else {
+			app.Logger.Error(stderr)
+		}
+	}
+
+	if err != nil {
+		return err
+	}
+	app.Logger.WithField("cmd", "migrate").WithField("args", args).Debug("golang-migrate down command executed.")
+	app.Logger.WithField("Env", env).WithField("Version", version).Info("Rollback.")
 	return nil
 }
 
