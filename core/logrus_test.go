@@ -14,6 +14,7 @@ func TestStructToFields(t *testing.T) {
 			School string
 			Major  string
 		}
+		Relationships map[string]string
 	}{
 		Name: "ZhangSan",
 		Age:  18,
@@ -23,6 +24,10 @@ func TestStructToFields(t *testing.T) {
 		}{
 			School: "THU",
 			Major:  "IEEE",
+		},
+		Relationships: map[string]string{
+			"Mother": "Hui Lan",
+			"Father": "Zhang Mang",
 		},
 	}
 

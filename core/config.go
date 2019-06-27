@@ -29,9 +29,9 @@ type CurrentConfig struct {
 
 type DatabaseConfig struct {
 	Driver   string            `mapstructure:"driver"`
-	DBHost   string            `mapstructure:"db_host"`
-	DBPort   int               `mapstructure:"db_port"`
-	DBName   string            `mapstructure:"db_name"`
+	DBHost   string            `mapstructure:"dbhost"`
+	DBPort   int               `mapstructure:"dbport"`
+	DBName   string            `mapstructure:"dbname"`
 	User     string            `mapstructure:"user"`
 	Password string            `mapstructure:"password"`
 	Extra    map[string]string `mapstructure:"extra"`
@@ -69,6 +69,30 @@ func (c *Config) SetDefaultVersion(v string) {
 
 func (c *Config) IsDirty() bool {
 	return c.dirty
+}
+
+func (c *Config) GetCurrentDatabaseURL() (u string, err error) {
+	var (
+		g  DatabaseURLGenerator
+		d  *DatabaseConfig
+		ok bool
+	)
+
+	if d, ok = c.Databases[c.Current.Env]; !ok {
+		err = fmt.Errorf("Database config for env %s not exists", c.Current.Env)
+		return
+	}
+
+	switch d.Driver {
+	case supportedDrivers[0]:
+		g = &MysqlURLGenerator{}
+		break
+	default:
+		err = fmt.Errorf("Unsupported driver: %s", d.Driver)
+		return
+	}
+	u = g.Generate(d)
+	return
 }
 
 // InitOption 用于初始化命令保存的参数

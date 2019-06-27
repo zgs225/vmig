@@ -1,12 +1,10 @@
 package core
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -99,7 +97,7 @@ func (app *App) CreateVersion(version string, isDefault bool) error {
 		app.Logger.Debug("Current version set to ", version)
 	}
 
-	app.Logger.Infnf("Version %s created.", version)
+	app.Logger.Infof("Version %s created.", version)
 
 	return nil
 }
@@ -111,31 +109,59 @@ func (app *App) New(title, version string) error {
 	}
 
 	args := []string{"create", "-ext", "sql", "-dir", version, title}
-	cmd := exec.Command("migrate", args...)
-	cmd.Stdout = new(bytes.Buffer)
-	cmd.Stderr = new(bytes.Buffer)
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	app.Logger.WithField("cmd", "migrate").WithField("args", args).Debug("golang-mirate create command executed.")
+	stdout, stderr, err := vmig_exec("migrate", args)
 
-	if b, err := ioutil.ReadAll(cmd.Stdout.(*bytes.Buffer)); err != nil {
-		return err
-	} else {
-		if len(b) > 0 {
-			app.Logger.Info(string(b))
-		}
+	if len(stdout) > 0 {
+		app.Logger.Debug(stdout)
 	}
 
-	if b, err := ioutil.ReadAll(cmd.Stderr.(*bytes.Buffer)); err != nil {
-		return err
-	} else {
-		if len(b) > 0 {
-			app.Logger.Error(string(b))
-		}
+	if len(stderr) > 0 {
+		app.Logger.Error(stderr)
 	}
+
+	if err != nil {
+		return err
+	}
+	app.Logger.WithField("cmd", "migrate").WithField("args", args).Debug("golang-migrate create command executed.")
 
 	app.Logger.Info("migration files created.")
+
+	return nil
+}
+
+// Up 应用指定版本的所有迁移文件
+func (app *App) Up(version string) error {
+	return app.UpN(version, 0)
+}
+
+// UpN 应用指定版本指定数量迁移文件，n 代表所有
+func (app *App) UpN(version string, n int) error {
+	if err := app.checkVersion(version); err != nil {
+		return err
+	}
+	cmd := "migrate"
+	database, err := app.Config.GetCurrentDatabaseURL()
+	if err != nil {
+		return err
+	}
+	args := []string{"-path", version, "-database", database, "up"}
+	if n > 0 {
+		args = append(args, strconv.FormatInt(int64(n), 10))
+	}
+	stdout, stderr, err := vmig_exec(cmd, args)
+
+	if len(stdout) > 0 {
+		app.Logger.Debug(stdout)
+	}
+
+	if len(stderr) > 0 {
+		app.Logger.Error(stderr)
+	}
+
+	if err != nil {
+		return err
+	}
+	app.Logger.WithField("cmd", "migrate").WithField("args", args).Debug("golang-migrate up command executed.")
 
 	return nil
 }
