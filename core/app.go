@@ -29,10 +29,7 @@ func NewApp(root string) (app *App, err error) {
 		}
 	}
 	app = &App{Root: root}
-	if err = app.initLogger(); err != nil {
-		return
-	}
-
+	err = app.initLogger()
 	return
 }
 
