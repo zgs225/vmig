@@ -43,6 +43,7 @@ Available Commands:
   init           Init vmig environment
   new            Create a migration file in default version directory.
   up             Apply all or given N up migration files.
+  version        Show vmig version
 
 Flags:
       --config string   config file (default is $PWD/.vmig.yaml)
