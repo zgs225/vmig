@@ -30,5 +30,5 @@ var newCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(newCmd)
 
-	newCmd.Flags().StringVarP(&newCmdVersion, "version", "", "", "Version of migration files belongs to.")
+	newCmd.Flags().StringVarP(&newCmdVersion, "version", "v", "", "Version of migration files belongs to.")
 }

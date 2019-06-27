@@ -12,20 +12,16 @@ func vmig_exec(cmd string, args []string) (stdout string, stderr string, err err
 	c.Stdout = new(bytes.Buffer)
 	c.Stderr = new(bytes.Buffer)
 
-	if err = c.Run(); err != nil {
-		return
-	}
+	err = c.Run()
 
 	if b, err2 := ioutil.ReadAll(c.Stderr.(*bytes.Buffer)); err2 != nil {
 		err = err2
-		return
 	} else {
 		stderr = string(b)
 	}
 
 	if b, err2 := ioutil.ReadAll(c.Stdout.(*bytes.Buffer)); err2 != nil {
 		err = err2
-		return
 	} else {
 		stdout = string(b)
 	}
