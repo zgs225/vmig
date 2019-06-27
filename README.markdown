@@ -1,6 +1,31 @@
 Vmig
 ===
 
+## Installation
+
+``` bash
+go get -u github.com/zgs225/vmig
+```
+
+## Example
+
+``` bash
+# Initialize
+vmig init
+
+# Create a version and set to default
+vmig create-version v1.0.0 -d
+
+# Create a migration
+vmig new create_table_users
+
+# Apply migration
+vmig up
+
+# Rollback
+vmig down
+```
+
 ## Usage
 
 ```
@@ -11,15 +36,18 @@ Usage:
   vmig [command]
 
 Available Commands:
+  config         Config settings
   create-version Create a new version
+  down           Rollback migrations
   help           Help about any command
   init           Init vmig environment
   new            Create a migration file in default version directory.
+  up             Apply all or given N up migration files.
 
 Flags:
       --config string   config file (default is $PWD/.vmig.yaml)
   -h, --help            help for vmig
-  -v, --verbose         Output debug message.
+      --verbose         Output debug message.
 
 Use "vmig [command] --help" for more information about a command.
 ```
