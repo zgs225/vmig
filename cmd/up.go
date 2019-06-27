@@ -8,6 +8,7 @@ import (
 
 var (
 	upCmdVersion string
+	upCmdEnv     string
 )
 
 // upCmd represents the up command
@@ -19,18 +20,22 @@ var upCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		app := GetVmigApp()
 		v := app.Config.Current.Version
+		e := app.Config.Current.Env
 		if len(upCmdVersion) > 0 {
 			v = upCmdVersion
 		}
+		if len(upCmdEnv) > 0 {
+			e = upCmdEnv
+		}
 		var err error
 		if len(args) == 0 {
-			err = app.Up(v)
+			err = app.Up(e, v)
 		} else {
 			n, err2 := strconv.ParseInt(args[0], 10, 64)
 			if err2 != nil {
 				panic(err2)
 			}
-			err = app.UpN(v, int(n))
+			err = app.UpN(e, v, int(n))
 		}
 		if err != nil {
 			panic(err)
@@ -41,5 +46,6 @@ var upCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(upCmd)
 
-	upCmd.Flags().StringVarP(&upCmdVersion, "version", "", "", "Version of up")
+	upCmd.Flags().StringVarP(&upCmdVersion, "version", "v", "", "Version of migration up")
+	upCmd.Flags().StringVarP(&upCmdEnv, "env", "e", "", "Environment of migration up")
 }

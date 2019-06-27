@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -123,22 +124,29 @@ func (app *App) New(title, version string) error {
 		return err
 	}
 	app.Logger.WithField("cmd", "migrate").WithField("args", args).Debug("golang-migrate create command executed.")
-
-	app.Logger.Info("migration files created.")
-
+	app.Logger.WithField("Version", version).Info("migration files created.")
 	return nil
 }
 
 // Up 应用指定版本的所有迁移文件
-func (app *App) Up(version string) error {
-	return app.UpN(version, 0)
+func (app *App) Up(env, version string) error {
+	return app.UpN(env, version, 0)
 }
 
 // UpN 应用指定版本指定数量迁移文件，n 代表所有
-func (app *App) UpN(version string, n int) error {
+func (app *App) UpN(env, version string, n int) error {
+	if version == "" {
+		return errors.New("Version required.")
+	}
+
+	if env == "" {
+		return errors.New("Environment required.")
+	}
+
 	if err := app.checkVersion(version); err != nil {
 		return err
 	}
+
 	cmd := "migrate"
 	database, err := app.Config.GetCurrentDatabaseURL()
 	if err != nil {
@@ -162,7 +170,7 @@ func (app *App) UpN(version string, n int) error {
 		return err
 	}
 	app.Logger.WithField("cmd", "migrate").WithField("args", args).Debug("golang-migrate up command executed.")
-
+	app.Logger.WithField("Env", env).WithField("Version", version).Info("Migrated.")
 	return nil
 }
 

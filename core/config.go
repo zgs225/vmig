@@ -72,14 +72,18 @@ func (c *Config) IsDirty() bool {
 }
 
 func (c *Config) GetCurrentDatabaseURL() (u string, err error) {
+	return c.GetDatabaseURL(c.Current.Env)
+}
+
+func (c *Config) GetDatabaseURL(env string) (u string, err error) {
 	var (
 		g  DatabaseURLGenerator
 		d  *DatabaseConfig
 		ok bool
 	)
 
-	if d, ok = c.Databases[c.Current.Env]; !ok {
-		err = fmt.Errorf("Database config for env %s not exists", c.Current.Env)
+	if d, ok = c.Databases[env]; !ok {
+		err = fmt.Errorf("Database config for env %s not exists", env)
 		return
 	}
 
