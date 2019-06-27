@@ -1,7 +1,10 @@
 package core
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/zgs225/vmig/console"
@@ -69,6 +72,68 @@ func (c *Config) SetDefaultVersion(v string) {
 
 func (c *Config) IsDirty() bool {
 	return c.dirty
+}
+
+// Set 为给定的 key 设置值，键不区分大小写，并且嵌套的 key 可以使用 . 号分割
+func (c *Config) Set(key string, value interface{}) error {
+	parts := strings.Split(key, ".")
+	return c.set(reflect.Indirect(reflect.ValueOf(c)), parts, value)
+}
+
+func (c *Config) set(o reflect.Value, keys []string, value interface{}) error {
+	if len(keys) == 0 {
+		return errors.New("Key required.")
+	}
+
+	var f reflect.Value
+
+	switch o.Kind() {
+	case reflect.Struct:
+		f = o.FieldByNameFunc(func(name string) bool {
+			return strings.ToLower(name) == strings.ToLower(keys[0])
+		})
+		break
+	case reflect.Map:
+		iter := o.MapRange()
+		for iter.Next() {
+			k := iter.Key()
+			if k.Kind() == reflect.String && strings.ToLower(k.String()) == strings.ToLower(keys[0]) {
+				f = iter.Value()
+				break
+			}
+		}
+		break
+	case reflect.Array:
+		i, err := strconv.ParseInt(keys[0], 10, 64)
+		if err != nil {
+			return err
+		}
+		f = o.Index(int(i))
+		break
+	default:
+		return errors.New("Config object should be struct or map or array")
+		break
+	}
+
+	if len(keys) > 1 {
+		return c.set(reflect.Indirect(f), keys[1:], value)
+	} else {
+		if f.CanSet() {
+			v := reflect.ValueOf(value)
+			if f.Kind() == v.Kind() {
+				f.Set(v)
+			} else {
+				vv, err := ConvertValue(v, f.Type())
+				if err != nil {
+					return err
+				}
+				f.Set(vv)
+			}
+			c.dirty = true
+		}
+	}
+
+	return nil
 }
 
 func (c *Config) GetCurrentDatabaseURL() (u string, err error) {
